@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import { type ReactNode, useRef, useEffect } from 'react'
 
 export function Hero({
   label,
@@ -180,7 +182,40 @@ export function CodePair({
 }
 
 export function Diagram({ children }: { children: ReactNode }) {
-  return <div className="diagram">{children}</div>
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const text = typeof children === 'string' ? children : ''
+    if (!text || !containerRef.current) return
+
+    let cancelled = false
+    import('mermaid').then(({ default: mermaid }) => {
+      if (cancelled) return
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        themeVariables: {
+          primaryColor: '#3b82f6',
+          primaryTextColor: '#e2e8f0',
+          primaryBorderColor: '#475569',
+          lineColor: '#64748b',
+          secondaryColor: '#1e293b',
+          tertiaryColor: '#0f172a',
+          fontSize: '14px',
+        },
+      })
+      const id = `mermaid-${Math.random().toString(36).slice(2, 9)}`
+      mermaid.render(id, text).then(({ svg }) => {
+        if (!cancelled && containerRef.current) {
+          containerRef.current.innerHTML = svg
+        }
+      })
+    })
+
+    return () => { cancelled = true }
+  }, [children])
+
+  return <div className="diagram" ref={containerRef} />
 }
 
 export function Checklist({ children }: { children: ReactNode }) {

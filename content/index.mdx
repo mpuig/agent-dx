@@ -212,21 +212,13 @@ A linear pipeline (step A, then B, then C, done) doesn't work for iterative task
 
 A state machine with quality gates handles this. Failed gate? Route to a fix step, then back to the gate for rechecking. The agent loops until all gates pass.
 
-<Diagram>{`         ┌─────────┐
-         │  Build  │
-         └────┬────┘
-              │
-       ┌──────▼──────┐    ┌─────────┐
-       │ Content gate │───►│  Fix    │
-       └──────┬──────┘ ✗  └────┬────┘
-         ✓    │              │
-       ┌──────▼──────┐       │
-       │ Visual gate  │◄─────┘
-       └──────┬──────┘
-         ✓    │
-       ┌──────▼──────┐
-       │    Done     │
-       └─────────────┘`}</Diagram>
+<Diagram>{`flowchart TD
+    Build --> ContentGate{Content gate}
+    ContentGate -- ✗ --> Fix
+    Fix --> ContentGate
+    ContentGate -- ✓ --> VisualGate{Visual gate}
+    VisualGate -- ✗ --> Fix
+    VisualGate -- ✓ --> Done`}</Diagram>
 
 Separate quality gates for different concerns (content correctness vs. technical compliance) work better than a single combined check. When concerns are mixed, agents confuse one type of feedback with another and apply the wrong fix.
 
